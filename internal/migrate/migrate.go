@@ -76,6 +76,9 @@ func Default() []Migrator {
 	return []Migrator{
 		PhoneNumbers{},
 		Applications{},
+		SIP{},
+		Messaging{},
+		Queues{},
 	}
 }
 

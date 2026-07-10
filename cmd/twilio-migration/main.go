@@ -107,8 +107,12 @@ func report(w *os.File, results []migrate.Result) int {
 			r.Count(migrate.StatusFailed),
 		)
 		for _, it := range r.Items {
-			if it.Status == migrate.StatusFailed {
+			switch {
+			case it.Status == migrate.StatusFailed:
 				fmt.Fprintf(w, "      FAILED %s: %s\n", it.ID, it.Detail)
+			case it.Status == migrate.StatusCreated && it.Detail != "":
+				// Surfaces generated SIP credential passwords for redistribution.
+				fmt.Fprintf(w, "      %s: %s\n", it.ID, it.Detail)
 			}
 		}
 		total += r.Count(migrate.StatusFailed)

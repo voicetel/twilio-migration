@@ -3,6 +3,7 @@ package migrate
 import (
 	twilio "github.com/twilio/twilio-go"
 	twapi "github.com/twilio/twilio-go/rest/api/v2010"
+	twmsg "github.com/twilio/twilio-go/rest/messaging/v1"
 	voiceml "github.com/voicetel/voiceml-go-sdk"
 
 	"github.com/voicetel/twilio-migration/internal/config"
@@ -11,8 +12,11 @@ import (
 // Clients bundles the source (Twilio) and destination (VoiceML) API clients.
 // Reads go through Twilio; writes go through VoiceML.
 type Clients struct {
-	// Twilio is the source, via the official twilio-go SDK.
+	// Twilio is the source /2010-04-01 API, via the official twilio-go SDK.
 	Twilio *twapi.ApiService
+	// TwilioMessaging is the source messaging.twilio.com/v1 API (Messaging
+	// Services live here, not under /2010-04-01).
+	TwilioMessaging *twmsg.ApiService
 	// VoiceML is the destination, via the official voiceml-go-sdk.
 	VoiceML *voiceml.Client
 }
@@ -33,5 +37,5 @@ func NewClients(cfg config.Config) (*Clients, error) {
 		return nil, err
 	}
 
-	return &Clients{Twilio: src.Api, VoiceML: dst}, nil
+	return &Clients{Twilio: src.Api, TwilioMessaging: src.MessagingV1, VoiceML: dst}, nil
 }

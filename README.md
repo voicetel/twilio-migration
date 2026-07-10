@@ -8,17 +8,30 @@ in a VoiceML account with the official
 [`voiceml-go-sdk`](https://github.com/voicetel/voiceml-go-sdk). VoiceML's REST
 API is Twilio-compatible, so resources map across with the same field shapes.
 
+## ⚠️ Credentials are never copied or stored
+
+This tool **does not copy, read, or store SIP credential passwords.** Twilio
+does not expose a credential's password over its API, so there is nothing to
+copy. When migrating SIP credentials, the tool creates each username on VoiceML
+with a **brand-new, randomly generated password** and prints it once so you can
+redistribute it to the affected devices. **Registered devices will not
+re-authenticate until they receive the new password.** No password — original or
+generated — is ever written to disk by this tool.
+
 ## What it migrates (and what it doesn't)
 
 This tool migrates **configuration** — the resources you set up in the console:
 
-| Resource         | Migrator name    | Status         |
-|------------------|------------------|----------------|
-| Phone numbers    | `phone-numbers`  | ✅ implemented |
-| TwiML apps       | `applications`   | ✅ implemented |
-| SIP trunking     | `sip-trunking`   | 🟡 planned     |
-| Messaging config | `messaging`      | 🟡 planned     |
-| Caller IDs / Queues / Conversations / Assistants | — | 🟡 planned |
+| Resource                  | Migrator name   | Status         |
+|---------------------------|-----------------|----------------|
+| Phone numbers             | `phone-numbers` | ✅ implemented |
+| TwiML applications        | `applications`  | ✅ implemented |
+| SIP trunking              | `sip-trunking`  | ✅ implemented — domains, credential lists (+ credentials¹), IP ACLs (+ IP addresses), and domain↔list / domain↔ACL mappings |
+| Messaging services        | `messaging`     | ✅ implemented |
+| Queues                    | `queues`        | ✅ implemented |
+| Outgoing Caller IDs       | —               | ❌ not supported — the VoiceML Go SDK exposes no OutgoingCallerId resource |
+
+¹ Credentials get freshly generated passwords — see the section above.
 
 It does **not** migrate historical usage records (call/message logs). Twilio's
 [Bulk Export](https://www.twilio.com/docs/usage/bulkexport) covers those —
