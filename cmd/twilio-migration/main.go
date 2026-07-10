@@ -34,17 +34,23 @@ func main() {
 
 func run() error {
 	var (
-		dryRun      = flag.Bool("dry-run", false, "preview what would be migrated without writing to VoiceML")
-		baseURL     = flag.String("voiceml-base-url", "", "override the VoiceML API base URL (default https://voiceml.voicetel.com)")
-		only        = flag.String("only", "", "comma-separated migrator names to run (default: all). Available: "+strings.Join(migratorNames(), ", "))
-		assumeYes   = flag.Bool("yes", false, "skip the confirmation prompt before writing")
-		showVersion = flag.Bool("version", false, "print the version (matches the VoiceML OpenAPI/SDK version) and exit")
+		dryRun       = flag.Bool("dry-run", false, "preview what would be migrated without writing to VoiceML")
+		baseURL      = flag.String("voiceml-base-url", "", "override the VoiceML API base URL (default https://voiceml.voicetel.com)")
+		only         = flag.String("only", "", "comma-separated migrator names to run (default: all). Available: "+strings.Join(migratorNames(), ", "))
+		assumeYes    = flag.Bool("yes", false, "skip the confirmation prompt before writing")
+		showVersion  = flag.Bool("version", false, "print the version (matches the VoiceML OpenAPI/SDK version) and exit")
+		showCoverage = flag.Bool("coverage", false, "print the resource coverage matrix (what is migrated / unmigratable / planned) and exit")
 	)
 	flag.Parse()
 
 	if *showVersion {
 		fmt.Printf("twilio-migration %s (targets VoiceML OpenAPI %s; linked voiceml-go-sdk %s)\n",
 			version.Version, version.Version, voiceml.Version)
+		return nil
+	}
+
+	if *showCoverage {
+		printCoverage(os.Stdout)
 		return nil
 	}
 
@@ -118,6 +124,24 @@ func report(w *os.File, results []migrate.Result) int {
 		total += r.Count(migrate.StatusFailed)
 	}
 	return total
+}
+
+// printCoverage prints the resource coverage matrix grouped by status.
+func printCoverage(w *os.File) {
+	fmt.Fprintln(w, "Resource coverage (Twilio → VoiceML):")
+	for _, status := range []migrate.Coverage{migrate.CovMigrated, migrate.CovRoadmap, migrate.CovUnmigratable} {
+		fmt.Fprintf(w, "\n[%s]\n", status)
+		for _, e := range migrate.Inventory() {
+			if e.Status != status {
+				continue
+			}
+			if e.Reason != "" {
+				fmt.Fprintf(w, "  %-22s %s\n", e.Resource, e.Reason)
+			} else {
+				fmt.Fprintf(w, "  %s\n", e.Resource)
+			}
+		}
+	}
 }
 
 func migratorNames() []string { return names(migrate.Default()) }

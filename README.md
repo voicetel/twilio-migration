@@ -29,9 +29,21 @@ This tool migrates **configuration** — the resources you set up in the console
 | SIP trunking              | `sip-trunking`  | ✅ implemented — domains, credential lists (+ credentials¹), IP ACLs (+ IP addresses), and domain↔list / domain↔ACL mappings |
 | Messaging services        | `messaging`     | ✅ implemented |
 | Queues                    | `queues`        | ✅ implemented |
-| Outgoing Caller IDs       | —               | ❌ not supported — the VoiceML Go SDK exposes no OutgoingCallerId resource |
+| BYOC trunks, Connection Policies (+targets), IP Records, Source IP Mappings | — | 🟡 roadmap (SDK-supported) |
+| Dialing Permissions, Conversations, Assistants | — | 🟡 roadmap |
+| Outgoing Caller IDs       | —               | ❌ unmigratable — created only via phone validation (`CreateValidationRequest`); no direct create exists on Twilio or VoiceML, so each number must be re-verified interactively |
+| SIP Inbound Region        | —               | ❌ not exposed by the VoiceML Go SDK |
 
 ¹ Credentials get freshly generated passwords — see the section above.
+
+**Coverage is gated, not documented-by-hand.** `internal/migrate.Inventory()` is
+the authoritative list of every resource and its status; a build-failing test
+(`coverage_test.go`) asserts it stays consistent with the registered migrators,
+so a resource can never be silently dropped. Print the live matrix any time:
+
+```sh
+twilio-migration --coverage
+```
 
 It does **not** migrate historical usage records (call/message logs). Twilio's
 [Bulk Export](https://www.twilio.com/docs/usage/bulkexport) covers those —
