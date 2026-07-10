@@ -1,0 +1,16 @@
+# Build output
+/twilio-migration
+/dist/
+*.exe
+
+# Coverage
+cov.out
+coverage.out
+*.test
+
+# Local env / secrets — never commit credentials
+.env
+*.local
+
+# Editor / OS
+.DS_Store
