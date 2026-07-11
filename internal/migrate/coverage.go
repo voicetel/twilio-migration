@@ -43,12 +43,12 @@ func Inventory() []ResourceCoverage {
 		{Resource: "source-ip-mappings", Status: CovMigrated},
 
 		// Larger surfaces / non-trivial shapes; migrators pending (task #45).
-		{Resource: "dialing-permissions", Status: CovRoadmap, Reason: "Twilio models this as a settings/bulk-update surface (DialingPermissionsCountry/HrsPrefixes), not a simple create; needs assessment (#45)"},
 		{Resource: "conversations", Status: CovRoadmap, Reason: "Conversations v1 is a large stateful product (services, users, roles, conversations, participants, webhooks); pending (#45)"},
 		{Resource: "assistants", Status: CovRoadmap, Reason: "Assistants v1 is a large stateful product (assistants, tools, knowledge, policy); pending (#45)"},
 
 		// Cannot be migrated by any tool.
 		{Resource: "outgoing-caller-ids", Status: CovUnmigratable, Reason: "created ONLY via phone validation — Twilio (and VoiceML) expose CreateValidationRequest, not a direct create; each number must be re-verified interactively on VoiceML"},
 		{Resource: "sip-inbound-region", Status: CovUnmigratable, Reason: "not exposed by voiceml-go-sdk"},
+		{Resource: "dialing-permissions", Status: CovUnmigratable, Reason: "assessed (#45): voiceml-go-sdk's VoiceV1Service exposes only a Fetch/UpdateSettings singleton for one boolean (DialingPermissionsInheritance); it has no write endpoint for what this resource actually represents on Twilio — the per-country and high-risk-prefix allow/deny list (DialingPermissionsCountry, bulk country updates, HrsPrefixes). Migrating only the inheritance flag would misrepresent the resource as migrated"},
 	}
 }
