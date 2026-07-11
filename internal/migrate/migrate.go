@@ -89,6 +89,9 @@ func Default() []Migrator {
 		// SourceIPMappings re-points at IPRecords' and SIP's already-migrated
 		// SIDs; must run after both.
 		SourceIPMappings{},
+		// Conversations is self-contained (no cross-refs into other
+		// migrators' resources); order relative to them doesn't matter.
+		Conversations{},
 	}
 }
 

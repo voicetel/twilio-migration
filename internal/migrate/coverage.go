@@ -41,9 +41,9 @@ func Inventory() []ResourceCoverage {
 		{Resource: "connection-policies", Status: CovMigrated},
 		{Resource: "byoc-trunks", Status: CovMigrated},
 		{Resource: "source-ip-mappings", Status: CovMigrated},
+		{Resource: "conversations", Status: CovMigrated},
 
 		// Larger surfaces / non-trivial shapes; migrators pending (task #45).
-		{Resource: "conversations", Status: CovRoadmap, Reason: "Conversations v1 is a large stateful product (services, users, roles, conversations, participants, webhooks); pending (#45)"},
 		{Resource: "assistants", Status: CovRoadmap, Reason: "Assistants v1 is a large stateful product (assistants, tools, knowledge, policy); pending (#45)"},
 
 		// Cannot be migrated by any tool.

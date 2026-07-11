@@ -59,6 +59,7 @@ yet another twilio-go package.
 | `connection-policies` | `connectionpolicies.go` | Voice v1, policies idempotent by friendly name, nested Targets idempotent by SIP URI; produces SIDs `byoc-trunks` (G3) will need |
 | `byoc-trunks` | `byoctrunks.go` | Voice v1, idempotent by friendly name; re-points `ConnectionPolicySid`/`FromDomainSid` at already-migrated VoiceML SIDs (bridged via friendly name / domain name); runs after `connection-policies` and `sip-trunking` |
 | `source-ip-mappings` | `sourceipmappings.go` | Voice v1, idempotent by the resolved (IP record, SIP domain) pair; re-points `IpRecordSid`/`SipDomainSid` (bridged via IP address / domain name); runs after `ip-records` and `sip-trunking` |
+| `conversations` | `conversations.go` | Conversations v1 CONFIGURATION only: Services (records), default-scope Roles/Users/Conversations(+Participants+Messages+scoped Webhooks)/Config Addresses, account Configuration/ConfigurationWebhook singletons. Deliberately excludes: each Service's own nested Roles/Users/Conversations (default-scope only, owner decision); Credentials (Twilio never returns the push-notification secret material to copy); MessagingServiceSid cross-refs (left unset, optional field) |
 | coverage gate | `coverage.go`, `coverage_test.go` | `Inventory()` = authoritative status list; test fails on drift |
 
 - All four packages (`cmd/twilio-migration`, `internal/config`,

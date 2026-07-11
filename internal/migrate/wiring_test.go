@@ -63,7 +63,13 @@ func newWiringTestClients(t *testing.T) (*Clients, func()) {
 		t.Fatalf("voiceml.NewClient: %v", err)
 	}
 
-	return &Clients{Twilio: rc.Api, TwilioMessaging: rc.MessagingV1, TwilioVoice: rc.VoiceV1, VoiceML: vc}, vmServer.Close
+	return &Clients{
+		Twilio:              rc.Api,
+		TwilioMessaging:     rc.MessagingV1,
+		TwilioVoice:         rc.VoiceV1,
+		TwilioConversations: rc.ConversationsV1,
+		VoiceML:             vc,
+	}, vmServer.Close
 }
 
 // TestMigratorsMigrate_EmptySource exercises every Migrator.Migrate() wrapper
@@ -80,8 +86,15 @@ func TestMigratorsMigrate_EmptySource(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s.Migrate: %v", m.Name(), err)
 			}
-			if len(res.Items) != 0 {
-				t.Errorf("%s: expected no items against an empty source, got %+v", m.Name(), res.Items)
+			// conversations always syncs the account-level Configuration/
+			// ConfigurationWebhook singletons — there is no "empty source"
+			// concept for those two, unlike every list-based resource here.
+			wantItems := 0
+			if m.Name() == "conversations" {
+				wantItems = 2
+			}
+			if len(res.Items) != wantItems {
+				t.Errorf("%s: expected %d item(s) against an empty source, got %+v", m.Name(), wantItems, res.Items)
 			}
 		})
 	}
