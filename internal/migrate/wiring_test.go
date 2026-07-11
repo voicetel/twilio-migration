@@ -63,7 +63,7 @@ func newWiringTestClients(t *testing.T) (*Clients, func()) {
 		t.Fatalf("voiceml.NewClient: %v", err)
 	}
 
-	return &Clients{Twilio: rc.Api, TwilioMessaging: rc.MessagingV1, VoiceML: vc}, vmServer.Close
+	return &Clients{Twilio: rc.Api, TwilioMessaging: rc.MessagingV1, TwilioVoice: rc.VoiceV1, VoiceML: vc}, vmServer.Close
 }
 
 // TestMigratorsMigrate_EmptySource exercises every Migrator.Migrate() wrapper

@@ -7,6 +7,7 @@ import (
 	twclient "github.com/twilio/twilio-go/client"
 	twapi "github.com/twilio/twilio-go/rest/api/v2010"
 	twmsg "github.com/twilio/twilio-go/rest/messaging/v1"
+	twvoice "github.com/twilio/twilio-go/rest/voice/v1"
 	voiceml "github.com/voicetel/voiceml-go-sdk"
 
 	"github.com/voicetel/twilio-migration/internal/config"
@@ -20,6 +21,10 @@ type Clients struct {
 	// TwilioMessaging is the source messaging.twilio.com/v1 API (Messaging
 	// Services live here, not under /2010-04-01).
 	TwilioMessaging *twmsg.ApiService
+	// TwilioVoice is the source voice.twilio.com/v1 API (ByocTrunks,
+	// ConnectionPolicies (+Targets), DialingPermissions, SourceIpMappings,
+	// IpRecords live here, not under /2010-04-01).
+	TwilioVoice *twvoice.ApiService
 	// VoiceML is the destination, via the official voiceml-go-sdk.
 	VoiceML *voiceml.Client
 }
@@ -86,5 +91,5 @@ func NewClients(cfg config.Config) (*Clients, error) {
 		return nil, err
 	}
 
-	return &Clients{Twilio: src.Api, TwilioMessaging: src.MessagingV1, VoiceML: dst}, nil
+	return &Clients{Twilio: src.Api, TwilioMessaging: src.MessagingV1, TwilioVoice: src.VoiceV1, VoiceML: dst}, nil
 }

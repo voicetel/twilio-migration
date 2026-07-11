@@ -79,6 +79,9 @@ func Default() []Migrator {
 		SIP{},
 		Messaging{},
 		Queues{},
+		// IPRecords produces SIDs a future source-ip-mappings migrator will
+		// need to resolve by IP address; run it early.
+		IPRecords{},
 	}
 }
 

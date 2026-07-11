@@ -42,9 +42,9 @@ Twilio ──(twilio-go: read)──▶ migrate.Migrator ──(voiceml-go-sdk: 
   `--version`, `--yes`, `--voiceml-base-url`).
 
 `internal/migrate/clients.go` holds `Clients{ Twilio *twapi.ApiService,
-TwilioMessaging *twmsg.ApiService, VoiceML *voiceml.Client }`. Add new source
-sub-clients here if a resource lives in a different twilio-go package (e.g.
-voice/v1 is `src.VoiceV1`).
+TwilioMessaging *twmsg.ApiService, TwilioVoice *twvoice.ApiService, VoiceML
+*voiceml.Client }`. Add new source sub-clients here if a resource lives in
+yet another twilio-go package.
 
 ## Current status (implemented ✅)
 
@@ -55,11 +55,16 @@ voice/v1 is `src.VoiceV1`).
 | `sip-trunking` | `sip.go` | domains, cred lists (+ credentials), IP ACLs (+ IPs), domain↔list/ACL mappings; mappings re-pointed by friendly name |
 | `messaging` | `messaging.go` | Messaging Services (messaging/v1 sub-client) |
 | `queues` | `queues.go` | idempotent by friendly name |
+| `ip-records` | `iprecords.go` | Voice v1, idempotent by IP address; produces SIDs `source-ip-mappings` (G4) will need |
 | coverage gate | `coverage.go`, `coverage_test.go` | `Inventory()` = authoritative status list; test fails on drift |
 
-- `internal/migrate` package coverage ~83% (fakes, no network). Gaps are error
-  branches + the thin `Migrate`/`NewClients` SDK-wiring adapters (documented
-  composition-root exceptions — do not gold-plate).
+- All four packages (`cmd/twilio-migration`, `internal/config`,
+  `internal/migrate`, `internal/version`) are at literal 100% statement
+  coverage (`go test -race -covermode=atomic`), including the `Migrate()` /
+  `NewClients` SDK-wiring adapters — via local httptest/fake-transport doubles
+  (`wiring_test.go`, `clients_test.go`) and two test-only seams in
+  `clients.go` (`SetTestTwilioTransport`, `SetTestVoiceMLClientFactory`). No
+  coverage exceptions remain; the quality gate's ratchet target is 100%.
 - CI green: gosec, govulncheck, CodeQL, dependency-submission; Dependabot on.
 
 Run `twilio-migration --coverage` to see the live status of every resource.
@@ -126,10 +131,16 @@ func migrateX(ctx context.Context, src xSource, dst xDest, opts Options) (Result
 Then:
 1. Register `X{}` in `migrate.Default()` (`migrate.go`) **in dependency order**.
 2. Flip the resource's row in `Inventory()` (`coverage.go`) from `CovRoadmap`
-   to `CovMigrated` and drop its `Reason`. The coverage test enforces this. Check
-   its box in `PARITY-GAPS.md`.
+   to `CovMigrated` and drop its `Reason`. The coverage test enforces this.
+   Mark the matching G-task completed in the Claude Code task system.
 3. Add table-driven tests against fakes (`x_test.go`): create / skip-existing /
-   dry-run / create-error / list-errors. See `queues_test.go`.
+   dry-run / create-error / list-errors. See `queues_test.go` or
+   `iprecords_test.go`.
+4. Wire `Migrate()` into `internal/migrate/wiring_test.go`'s
+   `newWiringTestClients` if it needs a new `*Clients` field (see
+   `TwilioVoice`) — the quality gate's ratchet target is literal 100%
+   coverage, no exceptions, so a missing wire-up there will panic on a nil
+   sub-client rather than just under-cover.
 
 ### Non-negotiable rules
 
