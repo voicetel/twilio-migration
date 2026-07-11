@@ -10,31 +10,51 @@ API is Twilio-compatible, so resources map across with the same field shapes.
 
 ## ⚠️ Credentials are never copied or stored
 
-This tool **does not copy, read, or store SIP credential passwords.** Twilio
-does not expose a credential's password over its API, so there is nothing to
-copy. When migrating SIP credentials, the tool creates each username on VoiceML
-with a **brand-new, randomly generated password** and prints it once so you can
-redistribute it to the affected devices. **Registered devices will not
-re-authenticate until they receive the new password.** No password — original or
-generated — is ever written to disk by this tool.
+This tool **does not copy, read, or store secrets it cannot get back from
+Twilio.** Twilio's API doesn't return them, so there is nothing to copy:
+
+- **SIP credential passwords** — the tool creates each username on VoiceML
+  with a **brand-new, randomly generated password** and prints it once so you
+  can redistribute it to the affected devices. **Registered devices will not
+  re-authenticate until they receive the new password.**
+- **Conversations push-notification Credentials** (APN certificate/key, GCM/FCM
+  keys) and **Assistants' SegmentCredential** (analytics API key/write key) —
+  these can't be regenerated the way SIP passwords can (they're issued by
+  Apple/Google/Segment, not this tool), so those sub-resources are simply
+  **not migrated**. Everything else on the parent resource still is.
+
+No password or secret — original or generated — is ever written to disk by
+this tool.
 
 ## What it migrates (and what it doesn't)
 
 This tool migrates **configuration** — the resources you set up in the console:
 
-| Resource                  | Migrator name   | Status         |
-|---------------------------|-----------------|----------------|
-| Phone numbers             | `phone-numbers` | ✅ implemented |
-| TwiML applications        | `applications`  | ✅ implemented |
-| SIP trunking              | `sip-trunking`  | ✅ implemented — domains, credential lists (+ credentials¹), IP ACLs (+ IP addresses), and domain↔list / domain↔ACL mappings |
-| Messaging services        | `messaging`     | ✅ implemented |
-| Queues                    | `queues`        | ✅ implemented |
-| BYOC trunks, Connection Policies (+targets), IP Records, Source IP Mappings | — | 🟡 roadmap (SDK-supported) |
-| Dialing Permissions, Conversations, Assistants | — | 🟡 roadmap |
-| Outgoing Caller IDs       | —               | ❌ unmigratable — created only via phone validation (`CreateValidationRequest`); no direct create exists on Twilio or VoiceML, so each number must be re-verified interactively |
-| SIP Inbound Region        | —               | ❌ not exposed by the VoiceML Go SDK |
+| Resource                        | Migrator name         | Status         |
+|----------------------------------|------------------------|----------------|
+| Phone numbers                     | `phone-numbers`        | ✅ implemented |
+| TwiML applications                 | `applications`         | ✅ implemented |
+| SIP trunking                       | `sip-trunking`         | ✅ implemented — domains, credential lists (+ credentials¹), IP ACLs (+ IP addresses), and domain↔list / domain↔ACL mappings |
+| Messaging services                  | `messaging`            | ✅ implemented |
+| Queues                              | `queues`               | ✅ implemented |
+| IP Records                          | `ip-records`           | ✅ implemented |
+| Connection Policies (+ targets)     | `connection-policies`  | ✅ implemented |
+| BYOC trunks                         | `byoc-trunks`          | ✅ implemented — re-points Connection Policy / SIP Domain references at their migrated VoiceML equivalents |
+| Source IP Mappings                  | `source-ip-mappings`   | ✅ implemented — re-points IP Record / SIP Domain references at their migrated VoiceML equivalents |
+| Conversations (config only)²        | `conversations`        | ✅ implemented — Services, default-scope Roles/Users/Conversations (+ Participants, Messages, Webhooks), Config Addresses, account Configuration |
+| Assistants (config only)³           | `assistants`           | ✅ implemented — Assistants, standalone Tools/Knowledge + their attachments |
+| Outgoing Caller IDs                 | —                       | ❌ unmigratable — created only via phone validation (`CreateValidationRequest`); no direct create exists on Twilio or VoiceML, so each number must be re-verified interactively |
+| SIP Inbound Region                  | —                       | ❌ not exposed by the VoiceML Go SDK |
+| Dialing Permissions                  | —                       | ❌ unmigratable — VoiceML exposes only one inheritance toggle, not the per-country/prefix allow/deny list Twilio actually models; copying just the toggle would misrepresent the resource as migrated |
 
 ¹ Credentials get freshly generated passwords — see the section above.
+² Excludes push-notification Credentials (see above), each named Service's own
+nested Roles/Users/Conversations (default-scope only), and `MessagingServiceSid`
+cross-refs (left unset).
+³ Excludes SegmentCredential (see above), Policies (VoiceML has no write
+endpoint for them), and Sessions/Messages/Feedback (the only write endpoint is
+a live LLM-execution call, not a data-import one — technically impossible to
+migrate, not a scope choice).
 
 **Coverage is gated, not documented-by-hand.** `internal/migrate.Inventory()` is
 the authoritative list of every resource and its status; a build-failing test
@@ -127,8 +147,11 @@ Twilio  ──(twilio-go: read)──▶  migrate.Migrator  ──(voiceml-go-sd
 1. Add `internal/migrate/<resource>.go` with a `type X struct{}` implementing
    `Migrator` (a thin wrapper) plus a `migrateX(ctx, src, dst, opts)` function
    over narrow interfaces.
-2. Add `X{}` to `migrate.Default()`.
-3. Add table-driven tests against fakes.
+2. Add `X{}` to `migrate.Default()` and flip its row in
+   `internal/migrate.Inventory()` (`coverage.go`) to `CovMigrated`.
+3. Add table-driven tests against fakes, and wire the new source sub-client
+   into `wiring_test.go`'s `newWiringTestClients` if it's a new one. See
+   `docs/AGENT-HANDOFF.md` for the full pattern and non-negotiable rules.
 
 ## Testing
 
@@ -136,10 +159,12 @@ Twilio  ──(twilio-go: read)──▶  migrate.Migrator  ──(voiceml-go-sd
 make cover      # go test -race + coverage
 ```
 
-Pure logic (config, the runner, and every `migrateX` function) is unit-tested
-against fakes. `NewClients` and the one-line `Migrate` wrappers are thin
-SDK-wiring adapters that only talk to live endpoints; they're exercised by real
-runs (and, later, an optional `httptest` integration test) rather than mocked.
+The whole repo — `cmd/twilio-migration`, `internal/config`, `internal/migrate`,
+`internal/version` — is held to **literal 100% statement coverage**
+(`go test -race -covermode=atomic`), including `NewClients` and every one-line
+`Migrate` wrapper: those are exercised against local `httptest`/fake-transport
+doubles (`wiring_test.go`, `clients_test.go`), never live endpoints, so the
+suite has no network dependency.
 
 ## Versioning
 
