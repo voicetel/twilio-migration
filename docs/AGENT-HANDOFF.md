@@ -56,6 +56,7 @@ yet another twilio-go package.
 | `messaging` | `messaging.go` | Messaging Services (messaging/v1 sub-client) |
 | `queues` | `queues.go` | idempotent by friendly name |
 | `ip-records` | `iprecords.go` | Voice v1, idempotent by IP address; produces SIDs `source-ip-mappings` (G4) will need |
+| `connection-policies` | `connectionpolicies.go` | Voice v1, policies idempotent by friendly name, nested Targets idempotent by SIP URI; produces SIDs `byoc-trunks` (G3) will need |
 | coverage gate | `coverage.go`, `coverage_test.go` | `Inventory()` = authoritative status list; test fails on drift |
 
 - All four packages (`cmd/twilio-migration`, `internal/config`,

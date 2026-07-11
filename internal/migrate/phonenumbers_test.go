@@ -10,6 +10,7 @@ import (
 )
 
 func strp(s string) *string { return &s }
+func boolp(b bool) *bool    { return &b }
 
 type fakePhoneSource struct {
 	nums []twapi.ApiV2010IncomingPhoneNumber
