@@ -92,6 +92,9 @@ func Default() []Migrator {
 		// Conversations is self-contained (no cross-refs into other
 		// migrators' resources); order relative to them doesn't matter.
 		Conversations{},
+		// Assistants is self-contained (no cross-refs into other migrators'
+		// resources); order relative to them doesn't matter.
+		Assistants{},
 	}
 }
 

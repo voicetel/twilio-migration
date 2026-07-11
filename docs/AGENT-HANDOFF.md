@@ -1,11 +1,15 @@
 # Agent handoff — twilio-migration
 
-Status report for an agent picking up the remaining migration work. Read this
-top to bottom, then work the remaining-work task list (TaskList; G1-G7,
-formerly tracked in `docs/PARITY-GAPS.md`, now in the Claude Code task
-system).
+Status report for an agent picking up this tool. Read this top to bottom.
+The G1-G7 roadmap (formerly tracked in `docs/PARITY-GAPS.md`, then the Claude
+Code task system) is **complete** — every migratable VoiceV1/Conversations/
+Assistants resource has a migrator; `twilio-migration --coverage` shows an
+empty `[roadmap]` section. See "Extending the tool" below if a new
+create-capable resource appears in a future SDK release.
 
-Last updated by the previous session after shipping the coverage gate.
+Last updated by the session that completed G1-G7 (ip-records,
+connection-policies, byoc-trunks, source-ip-mappings, dialing-permissions
+assessment, conversations, assistants).
 
 ---
 
@@ -42,9 +46,10 @@ Twilio ──(twilio-go: read)──▶ migrate.Migrator ──(voiceml-go-sdk: 
   `--version`, `--yes`, `--voiceml-base-url`).
 
 `internal/migrate/clients.go` holds `Clients{ Twilio *twapi.ApiService,
-TwilioMessaging *twmsg.ApiService, TwilioVoice *twvoice.ApiService, VoiceML
-*voiceml.Client }`. Add new source sub-clients here if a resource lives in
-yet another twilio-go package.
+TwilioMessaging *twmsg.ApiService, TwilioVoice *twvoice.ApiService,
+TwilioConversations *twconv.ApiService, TwilioAssistants *twasst.ApiService,
+VoiceML *voiceml.Client }`. Add new source sub-clients here if a resource
+lives in yet another twilio-go package.
 
 ## Current status (implemented ✅)
 
@@ -60,6 +65,7 @@ yet another twilio-go package.
 | `byoc-trunks` | `byoctrunks.go` | Voice v1, idempotent by friendly name; re-points `ConnectionPolicySid`/`FromDomainSid` at already-migrated VoiceML SIDs (bridged via friendly name / domain name); runs after `connection-policies` and `sip-trunking` |
 | `source-ip-mappings` | `sourceipmappings.go` | Voice v1, idempotent by the resolved (IP record, SIP domain) pair; re-points `IpRecordSid`/`SipDomainSid` (bridged via IP address / domain name); runs after `ip-records` and `sip-trunking` |
 | `conversations` | `conversations.go` | Conversations v1 CONFIGURATION only: Services (records), default-scope Roles/Users/Conversations(+Participants+Messages+scoped Webhooks)/Config Addresses, account Configuration/ConfigurationWebhook singletons. Deliberately excludes: each Service's own nested Roles/Users/Conversations (default-scope only, owner decision); Credentials (Twilio never returns the push-notification secret material to copy); MessagingServiceSid cross-refs (left unset, optional field) |
+| `assistants` | `assistants.go` | Assistants v1 CONFIGURATION only: Assistants, standalone Tools/Knowledge (idempotent by name) + their per-assistant attachments. Deliberately excludes: SegmentCredential (Twilio never returns the analytics API key/write key to copy); Policies (voiceml-go-sdk has no write endpoint — list-only); Sessions/Messages/Feedback (the only write endpoint, SendMessage, is a live LLM-execution call, not a data-import endpoint — technically impossible to migrate, not a scope choice) |
 | coverage gate | `coverage.go`, `coverage_test.go` | `Inventory()` = authoritative status list; test fails on drift |
 
 - All four packages (`cmd/twilio-migration`, `internal/config`,
@@ -73,14 +79,14 @@ yet another twilio-go package.
 
 Run `twilio-migration --coverage` to see the live status of every resource.
 
-## Remaining work
+## Extending the tool
 
-The full, prioritized gap list — with build order, cross-reference notes, and
-**verified** twilio-go + voiceml-go-sdk signatures for each resource (G1-G7) —
-is tracked in the Claude Code task system (TaskList). Work it top to bottom
-(G3 is blocked on G2, G4 is blocked on G1); it is mirrored by
-`internal/migrate.Inventory()` (the coverage test fails the build if they
-drift).
+There is no open roadmap right now — `internal/migrate.Inventory()`'s
+`[roadmap]` section is empty. If a future voiceml-go-sdk/twilio-go release
+adds a write endpoint for one of the currently `CovUnmigratable` rows
+(`outgoing-caller-ids`, `sip-inbound-region`, `dialing-permissions`), or a new
+Twilio product gains VoiceML parity, add a migrator following the pattern
+below.
 
 ---
 
@@ -149,10 +155,15 @@ Then:
 ### Non-negotiable rules
 
 - **Never copy or store secrets.** Twilio does not expose SIP credential
-  passwords (or Assistant BYO-LLM keys). Generate a new one with
-  `generatePassword()` (`password.go`) and REPORT it (set `ItemResult.Detail`,
-  status `StatusCreated`; the CLI surfaces created-item details). Never write a
-  password to disk.
+  passwords, Conversations push-notification Credentials
+  (Certificate/PrivateKey/ApiKey/Secret), or Assistants' SegmentCredential
+  (analytics API key/write key) — the read side never returns them. For SIP,
+  generate a new one with `generatePassword()` (`password.go`) and REPORT it
+  (set `ItemResult.Detail`, status `StatusCreated`; the CLI surfaces
+  created-item details). Never write a password to disk. For the others,
+  there's no way to mint a valid substitute (they're issued by Apple/Google/
+  Segment, not this tool) — exclude the sub-resource entirely and document
+  why, like `conversations.go` / `assistants.go` do.
 - **twilio-go list-item SIDs and most fields are `*string`** — always `deref()`.
 - **Idempotency**: list the destination first, skip by a stable natural key
   (number / friendly name / IP / domain name), never by SID.

@@ -68,6 +68,7 @@ func newWiringTestClients(t *testing.T) (*Clients, func()) {
 		TwilioMessaging:     rc.MessagingV1,
 		TwilioVoice:         rc.VoiceV1,
 		TwilioConversations: rc.ConversationsV1,
+		TwilioAssistants:    rc.AssistantsV1,
 		VoiceML:             vc,
 	}, vmServer.Close
 }
