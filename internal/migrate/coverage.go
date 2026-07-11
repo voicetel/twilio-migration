@@ -39,9 +39,9 @@ func Inventory() []ResourceCoverage {
 		{Resource: "queues", Status: CovMigrated},
 		{Resource: "ip-records", Status: CovMigrated},
 		{Resource: "connection-policies", Status: CovMigrated},
+		{Resource: "byoc-trunks", Status: CovMigrated},
 
 		// Migratable via the SDK's VoiceV1 service; migrators pending (task #44).
-		{Resource: "byoc-trunks", Status: CovRoadmap, Reason: "voiceml-go-sdk VoiceV1.CreateByocTrunk supported; migrator pending (#44)"},
 		{Resource: "source-ip-mappings", Status: CovRoadmap, Reason: "voiceml-go-sdk VoiceV1.CreateSourceIpMapping supported; migrator pending (#44)"},
 
 		// Larger surfaces / non-trivial shapes; migrators pending (task #45).

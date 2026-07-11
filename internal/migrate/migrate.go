@@ -82,9 +82,11 @@ func Default() []Migrator {
 		// IPRecords produces SIDs a future source-ip-mappings migrator will
 		// need to resolve by IP address; run it early.
 		IPRecords{},
-		// ConnectionPolicies produces SIDs a future byoc-trunks migrator will
-		// need to resolve by friendly name; run it before that.
+		// ConnectionPolicies produces SIDs ByocTrunks needs; run it first.
 		ConnectionPolicies{},
+		// ByocTrunks re-points at ConnectionPolicies' and SIP's already-
+		// migrated SIDs; must run after both.
+		ByocTrunks{},
 	}
 }
 
