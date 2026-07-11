@@ -79,14 +79,16 @@ func Default() []Migrator {
 		SIP{},
 		Messaging{},
 		Queues{},
-		// IPRecords produces SIDs a future source-ip-mappings migrator will
-		// need to resolve by IP address; run it early.
+		// IPRecords produces SIDs SourceIPMappings needs; run it early.
 		IPRecords{},
 		// ConnectionPolicies produces SIDs ByocTrunks needs; run it first.
 		ConnectionPolicies{},
 		// ByocTrunks re-points at ConnectionPolicies' and SIP's already-
 		// migrated SIDs; must run after both.
 		ByocTrunks{},
+		// SourceIPMappings re-points at IPRecords' and SIP's already-migrated
+		// SIDs; must run after both.
+		SourceIPMappings{},
 	}
 }
 

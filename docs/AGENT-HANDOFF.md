@@ -58,6 +58,7 @@ yet another twilio-go package.
 | `ip-records` | `iprecords.go` | Voice v1, idempotent by IP address; produces SIDs `source-ip-mappings` (G4) will need |
 | `connection-policies` | `connectionpolicies.go` | Voice v1, policies idempotent by friendly name, nested Targets idempotent by SIP URI; produces SIDs `byoc-trunks` (G3) will need |
 | `byoc-trunks` | `byoctrunks.go` | Voice v1, idempotent by friendly name; re-points `ConnectionPolicySid`/`FromDomainSid` at already-migrated VoiceML SIDs (bridged via friendly name / domain name); runs after `connection-policies` and `sip-trunking` |
+| `source-ip-mappings` | `sourceipmappings.go` | Voice v1, idempotent by the resolved (IP record, SIP domain) pair; re-points `IpRecordSid`/`SipDomainSid` (bridged via IP address / domain name); runs after `ip-records` and `sip-trunking` |
 | coverage gate | `coverage.go`, `coverage_test.go` | `Inventory()` = authoritative status list; test fails on drift |
 
 - All four packages (`cmd/twilio-migration`, `internal/config`,

@@ -40,9 +40,7 @@ func Inventory() []ResourceCoverage {
 		{Resource: "ip-records", Status: CovMigrated},
 		{Resource: "connection-policies", Status: CovMigrated},
 		{Resource: "byoc-trunks", Status: CovMigrated},
-
-		// Migratable via the SDK's VoiceV1 service; migrators pending (task #44).
-		{Resource: "source-ip-mappings", Status: CovRoadmap, Reason: "voiceml-go-sdk VoiceV1.CreateSourceIpMapping supported; migrator pending (#44)"},
+		{Resource: "source-ip-mappings", Status: CovMigrated},
 
 		// Larger surfaces / non-trivial shapes; migrators pending (task #45).
 		{Resource: "dialing-permissions", Status: CovRoadmap, Reason: "Twilio models this as a settings/bulk-update surface (DialingPermissionsCountry/HrsPrefixes), not a simple create; needs assessment (#45)"},
