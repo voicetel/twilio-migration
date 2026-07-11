@@ -1,7 +1,9 @@
 # Agent handoff — twilio-migration
 
 Status report for an agent picking up the remaining migration work. Read this
-top to bottom, then work the checklist in [`PARITY-GAPS.md`](PARITY-GAPS.md).
+top to bottom, then work the remaining-work task list (TaskList; G1-G7,
+formerly tracked in `docs/PARITY-GAPS.md`, now in the Claude Code task
+system).
 
 Last updated by the previous session after shipping the coverage gate.
 
@@ -65,10 +67,11 @@ Run `twilio-migration --coverage` to see the live status of every resource.
 ## Remaining work
 
 The full, prioritized gap list — with build order, cross-reference notes, and
-**verified** twilio-go + voiceml-go-sdk signatures for each resource — lives in
-[`PARITY-GAPS.md`](PARITY-GAPS.md). Work that checklist top to bottom; it is the
-authoritative task list and is mirrored by `internal/migrate.Inventory()` (the
-coverage test fails the build if they drift).
+**verified** twilio-go + voiceml-go-sdk signatures for each resource (G1-G7) —
+is tracked in the Claude Code task system (TaskList). Work it top to bottom
+(G3 is blocked on G2, G4 is blocked on G1); it is mirrored by
+`internal/migrate.Inventory()` (the coverage test fails the build if they
+drift).
 
 ---
 
@@ -185,5 +188,5 @@ twilio-migration --coverage  # sanity-check the matrix
 - `internal/migrate/{phonenumbers,applications,sip,messaging,queues}.go` — worked examples (`sip.go` for cross-ref remap).
 - `internal/migrate/password.go` — `generatePassword()` (never store secrets).
 - `cmd/twilio-migration/main.go` — CLI, report printing, coverage/version flags.
-- `docs/PARITY-GAPS.md` — the remaining-work checklist.
+- Remaining-work checklist (G1-G7): Claude Code task system (TaskList).
 - `README.md` — user-facing docs + the ⚠️ "credentials are never copied" section.

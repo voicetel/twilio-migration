@@ -103,9 +103,9 @@ func run() error {
 // report prints a per-resource summary and returns the total failure count.
 func report(w *os.File, results []migrate.Result) int {
 	total := 0
-	fmt.Fprintln(w, "\nResults:")
+	_, _ = fmt.Fprintln(w, "\nResults:")
 	for _, r := range results {
-		fmt.Fprintf(w, "  %-16s created=%d skipped=%d planned=%d failed=%d\n",
+		_, _ = fmt.Fprintf(w, "  %-16s created=%d skipped=%d planned=%d failed=%d\n",
 			r.Resource,
 			r.Count(migrate.StatusCreated),
 			r.Count(migrate.StatusSkipped),
@@ -115,10 +115,10 @@ func report(w *os.File, results []migrate.Result) int {
 		for _, it := range r.Items {
 			switch {
 			case it.Status == migrate.StatusFailed:
-				fmt.Fprintf(w, "      FAILED %s: %s\n", it.ID, it.Detail)
+				_, _ = fmt.Fprintf(w, "      FAILED %s: %s\n", it.ID, it.Detail)
 			case it.Status == migrate.StatusCreated && it.Detail != "":
 				// Surfaces generated SIP credential passwords for redistribution.
-				fmt.Fprintf(w, "      %s: %s\n", it.ID, it.Detail)
+				_, _ = fmt.Fprintf(w, "      %s: %s\n", it.ID, it.Detail)
 			}
 		}
 		total += r.Count(migrate.StatusFailed)
@@ -128,17 +128,17 @@ func report(w *os.File, results []migrate.Result) int {
 
 // printCoverage prints the resource coverage matrix grouped by status.
 func printCoverage(w *os.File) {
-	fmt.Fprintln(w, "Resource coverage (Twilio → VoiceML):")
+	_, _ = fmt.Fprintln(w, "Resource coverage (Twilio → VoiceML):")
 	for _, status := range []migrate.Coverage{migrate.CovMigrated, migrate.CovRoadmap, migrate.CovUnmigratable} {
-		fmt.Fprintf(w, "\n[%s]\n", status)
+		_, _ = fmt.Fprintf(w, "\n[%s]\n", status)
 		for _, e := range migrate.Inventory() {
 			if e.Status != status {
 				continue
 			}
 			if e.Reason != "" {
-				fmt.Fprintf(w, "  %-22s %s\n", e.Resource, e.Reason)
+				_, _ = fmt.Fprintf(w, "  %-22s %s\n", e.Resource, e.Reason)
 			} else {
-				fmt.Fprintf(w, "  %s\n", e.Resource)
+				_, _ = fmt.Fprintf(w, "  %s\n", e.Resource)
 			}
 		}
 	}

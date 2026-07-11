@@ -163,6 +163,41 @@ func TestLoadLaterCredentialError(t *testing.T) {
 	}
 }
 
+// TestLoadVoiceMLAccountSidError and TestLoadVoiceMLAuthTokenError isolate
+// the error-return branch for the 3rd and 4th resolve() calls in Load,
+// which TestLoadLaterCredentialError (failing on the very first prompt)
+// does not reach.
+func TestLoadVoiceMLAccountSidError(t *testing.T) {
+	_, err := Load(Config{}, mapEnv(nil), &countingErrPrompter{ok: 2})
+	if err == nil || !strings.Contains(err.Error(), "prompt failed") {
+		t.Fatalf("expected VoiceML Account SID prompt error, got %v", err)
+	}
+}
+
+func TestLoadVoiceMLAuthTokenError(t *testing.T) {
+	_, err := Load(Config{}, mapEnv(nil), &countingErrPrompter{ok: 3})
+	if err == nil || !strings.Contains(err.Error(), "prompt failed") {
+		t.Fatalf("expected VoiceML Auth Token prompt error, got %v", err)
+	}
+}
+
+// TestLoadResolvedBlankFailsValidate exercises the branch where every
+// resolve() call succeeds (no error) but a prompted value is whitespace-only
+// and trims to "", so Load's final cfg.Validate() call is the one that fails
+// — not resolve itself.
+func TestLoadResolvedBlankFailsValidate(t *testing.T) {
+	env := mapEnv(map[string]string{EnvTwilioAccountSid: "ACtwilio"})
+	p := &scriptPrompter{
+		lines:   []string{"   "}, // VoiceML SID: whitespace-only, trims to ""
+		secrets: []string{"twtoken", "vmtoken"},
+	}
+
+	_, err := Load(Config{}, env, p)
+	if err == nil || !strings.Contains(err.Error(), "VoiceML Account SID") {
+		t.Fatalf("expected Validate to reject the blank prompted SID, got %v", err)
+	}
+}
+
 func TestValidate(t *testing.T) {
 	full := Config{
 		TwilioAccountSid: "a", TwilioAuthToken: "b",

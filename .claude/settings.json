@@ -1,0 +1,110 @@
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TASKS": "1",
+    "GO_CLAUDE_LOCAL_MCP_ENABLED": "1"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/startup-context.sh"],
+            "timeout": 60,
+            "statusMessage": "Bootstrapping local Go MCP state"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/prompt-context.sh"],
+            "timeout": 60,
+            "statusMessage": "Refreshing local Go MCP state"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/quality-gate.sh", "--changed-only", "--report"],
+            "timeout": 600,
+            "statusMessage": "Checking Go quality after edit"
+          }
+        ]
+      }
+    ],
+    "TaskCreated": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/bootstrap-local-state.sh", "--task-created"],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/quality-gate.sh", "--enforce", "--changed-only"],
+            "timeout": 600,
+            "statusMessage": "Enforcing Go quality before task completion"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/bootstrap-local-state.sh", "--verify", "--strict"],
+            "timeout": 60,
+            "statusMessage": "Verifying local Go MCP bootstrap before stop"
+          },
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/quality-gate.sh", "--enforce", "--changed-only"],
+            "timeout": 600,
+            "statusMessage": "Enforcing Go quality before final response"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/scripts/shutdown-persist.sh"],
+            "timeout": 30,
+            "statusMessage": "Persisting local Go MCP state"
+          }
+        ]
+      }
+    ]
+  }
+}

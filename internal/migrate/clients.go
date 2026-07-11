@@ -1,7 +1,10 @@
 package migrate
 
 import (
+	"net/http"
+
 	twilio "github.com/twilio/twilio-go"
+	twclient "github.com/twilio/twilio-go/client"
 	twapi "github.com/twilio/twilio-go/rest/api/v2010"
 	twmsg "github.com/twilio/twilio-go/rest/messaging/v1"
 	voiceml "github.com/voicetel/voiceml-go-sdk"
@@ -21,14 +24,60 @@ type Clients struct {
 	VoiceML *voiceml.Client
 }
 
+// testTwilioTransport, when non-nil, replaces the HTTP transport used for
+// the Twilio (source) side of NewClients. It exists solely so this module's
+// own tests can redirect outbound Twilio requests to a local double —
+// twilio-go's ApiService.baseURL is unexported with no public override,
+// unlike VoiceML's ClientOptions.BaseURL (already reachable for tests via
+// config.Config.VoiceMLBaseURL / --voiceml-base-url). Not part of the public
+// API surface: internal/ packages are only importable within this module.
+var testTwilioTransport http.RoundTripper
+
+// SetTestTwilioTransport overrides the Twilio-side HTTP transport used by
+// NewClients and returns a restore func. Test-only.
+func SetTestTwilioTransport(rt http.RoundTripper) (restore func()) {
+	prev := testTwilioTransport
+	testTwilioTransport = rt
+	return func() { testTwilioTransport = prev }
+}
+
+// testVoiceMLClientFactory, when non-nil, replaces the voiceml.NewClient
+// call used for the VoiceML (destination) side of NewClients. Test-only, for
+// exercising NewClients' error-return branch: by the time NewClients runs
+// from the CLI, cfg has already passed config.Config.Validate(), which rules
+// out every condition the real voiceml.NewClient can fail on (missing
+// AccountSid; absent/conflicting API key+token; negative MaxRetries — this
+// package never sets the last two). A fault-injection seam is the only way
+// to reach that branch without weakening Validate()'s guarantee.
+var testVoiceMLClientFactory func(voiceml.ClientOptions) (*voiceml.Client, error)
+
+// SetTestVoiceMLClientFactory overrides the VoiceML client constructor used
+// by NewClients and returns a restore func. Test-only.
+func SetTestVoiceMLClientFactory(f func(voiceml.ClientOptions) (*voiceml.Client, error)) (restore func()) {
+	prev := testVoiceMLClientFactory
+	testVoiceMLClientFactory = f
+	return func() { testVoiceMLClientFactory = prev }
+}
+
 // NewClients builds the source and destination clients from cfg.
 func NewClients(cfg config.Config) (*Clients, error) {
-	src := twilio.NewRestClientWithParams(twilio.ClientParams{
+	params := twilio.ClientParams{
 		Username: cfg.TwilioAccountSid,
 		Password: cfg.TwilioAuthToken,
-	})
+	}
+	if testTwilioTransport != nil {
+		params.Client = &twclient.Client{
+			Credentials: twclient.NewCredentials(cfg.TwilioAccountSid, cfg.TwilioAuthToken),
+			HTTPClient:  &http.Client{Transport: testTwilioTransport},
+		}
+	}
+	src := twilio.NewRestClientWithParams(params)
 
-	dst, err := voiceml.NewClient(voiceml.ClientOptions{
+	newVoiceMLClient := voiceml.NewClient
+	if testVoiceMLClientFactory != nil {
+		newVoiceMLClient = testVoiceMLClientFactory
+	}
+	dst, err := newVoiceMLClient(voiceml.ClientOptions{
 		AccountSid: cfg.VoiceMLAccountSid,
 		AuthToken:  cfg.VoiceMLAuthToken,
 		BaseURL:    cfg.VoiceMLBaseURL,
