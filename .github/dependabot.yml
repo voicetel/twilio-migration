@@ -9,6 +9,13 @@ updates:
     labels:
       - "dependencies"
       - "go"
+    ignore:
+      # The repo imports github.com/twilio/twilio-go/rest/assistants/v1, which exists
+      # only in v1.30.x; newer twilio-go releases drop that namespace, so Dependabot
+      # cannot resolve an update without breaking the build. Keep the pinned v1.30.9.
+      github.com/twilio/twilio-go:
+        - "*"
+
     commit-message:
       prefix: "deps"
       include: "scope"
