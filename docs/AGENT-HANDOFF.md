@@ -27,7 +27,7 @@ Twilio Bulk Export's domain and are not importable configuration.
 
 - Module: `github.com/voicetel/twilio-migration`
 - Repo: `github.com/voicetel/twilio-migration` (PUBLIC)
-- Go: 1.25+
+- Go: 1.26+
 - Version policy: the tool version (`internal/version.Version`) tracks the
   VoiceML OpenAPI/SDK version; a test fails the build if it drifts from the
   linked `voiceml-go-sdk` `Version`. Currently **0.9.2**.
@@ -204,6 +204,12 @@ twilio-migration --coverage  # sanity-check the matrix
   Caveat: the Go module proxy immutably pinned `v0.9.2` to the initial commit;
   cut a new tag (e.g. `v0.9.3`) for a fresh installable release rather than
   moving `v0.9.2`.
+- twilio-go ceiling: pinned at **v1.30.9**. v1.31.0 removed
+  `rest/assistants/v1` (Twilio deprecated AI Assistants — breaking change),
+  which the `assistants` migrator reads on the source side. Bumping
+  twilio-go past v1.30.9 requires removing the assistants migrator (and
+  re-flipping its `Inventory()` row), or a source fork. Revisit when Twilio
+  sunsets the Assistants API anyway.
 
 ## Key files
 

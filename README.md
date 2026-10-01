@@ -83,7 +83,7 @@ go install github.com/voicetel/twilio-migration/cmd/twilio-migration@latest
 make build      # produces ./twilio-migration
 ```
 
-Requires Go 1.25+.
+Requires Go 1.26+.
 
 ## Usage
 
