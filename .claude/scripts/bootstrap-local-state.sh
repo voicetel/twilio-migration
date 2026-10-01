@@ -118,6 +118,23 @@ migrate_dir() {
     "$LOCAL_MCP/"*) ;;
   esac
 
+  # Never migrate anything under .claude/ -- that is Claude Code's own state
+  # (.claude/memory is the persistent memory store), not legacy MCP state.
+  case "$source_dir" in
+    "$ROOT/.claude"|"$ROOT/.claude/"*)
+      log "skip: ${source_dir#$ROOT/} is Claude Code state, not legacy MCP state"
+      return 0
+      ;;
+  esac
+
+  # Never migrate git-tracked content: a tracked directory is reviewed product
+  # content, not private local state. (supportAI/directives is the support
+  # agent's runtime prompt library; this function deleted it twice in 2026-05.)
+  if [ -d "$ROOT/.git" ] && [ -n "$(git -C "$ROOT" ls-files -- "$source_dir" 2>/dev/null | head -n 1)" ]; then
+    log "skip: ${source_dir#$ROOT/} is git-tracked product content"
+    return 0
+  fi
+
   safe_label="$(printf '%s' "$label" | tr '/ .' '___')"
   archive="$MIGRATED/${TS}-${safe_label}.tar.gz"
 
