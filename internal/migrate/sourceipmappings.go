@@ -158,7 +158,7 @@ func sourceDomainBridge(ctx context.Context, src byocDomainSource, dst byocDomai
 	if err != nil {
 		return nil, nil, fmt.Errorf("list Twilio SIP domains: %w", err)
 	}
-	voicemlDomains, err := dst.List(ctx, voiceml.ListPageParams{})
+	voicemlDomains, err := dst.List(ctx, voiceml.ListSIPParams{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("list VoiceML SIP domains: %w", err)
 	}

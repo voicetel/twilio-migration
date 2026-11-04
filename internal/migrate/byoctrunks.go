@@ -33,7 +33,7 @@ type byocTrunkDest interface {
 // byocDomainDest is the slice of voiceml-go-sdk used to look up the
 // (already-migrated) SIP domains a BYOC Trunk's FromDomainSid references.
 type byocDomainDest interface {
-	List(ctx context.Context, params voiceml.ListPageParams) (*voiceml.SIPDomainList, error)
+	List(ctx context.Context, params voiceml.ListSIPParams) (*voiceml.SIPDomainList, error)
 }
 
 // ByocTrunks migrates Voice v1 BYOC (Bring Your Own Carrier) Trunks.
@@ -172,7 +172,7 @@ func byocDomainSIDMap(ctx context.Context, src byocDomainSource, dst byocDomainD
 	if err != nil {
 		return nil, fmt.Errorf("list Twilio SIP domains: %w", err)
 	}
-	voicemlDomains, err := dst.List(ctx, voiceml.ListPageParams{})
+	voicemlDomains, err := dst.List(ctx, voiceml.ListSIPParams{})
 	if err != nil {
 		return nil, fmt.Errorf("list VoiceML SIP domains: %w", err)
 	}

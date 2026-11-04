@@ -14,4 +14,4 @@ package version
 
 // Version is the twilio-migration release, equal to the VoiceML OpenAPI /
 // voiceml-go-sdk version it targets.
-const Version = "0.9.2"
+const Version = "0.9.5"

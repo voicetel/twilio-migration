@@ -90,7 +90,7 @@ type fakeSIPCredLists struct {
 	listErr, createErr, listCredErr, createCredErr error
 }
 
-func (f *fakeSIPCredLists) List(context.Context, voiceml.ListPageParams) (*voiceml.SIPCredentialListList, error) {
+func (f *fakeSIPCredLists) List(context.Context, voiceml.ListSIPParams) (*voiceml.SIPCredentialListList, error) {
 	if f.listErr != nil {
 		return nil, f.listErr
 	}
@@ -127,7 +127,7 @@ type fakeSIPACLs struct {
 	listErr, createErr, listIPErr, createIPErr error
 }
 
-func (f *fakeSIPACLs) List(context.Context, voiceml.ListPageParams) (*voiceml.SIPIpAccessControlListList, error) {
+func (f *fakeSIPACLs) List(context.Context, voiceml.ListSIPParams) (*voiceml.SIPIpAccessControlListList, error) {
 	if f.listErr != nil {
 		return nil, f.listErr
 	}
@@ -140,7 +140,7 @@ func (f *fakeSIPACLs) Create(_ context.Context, p voiceml.CreateSIPIpAccessContr
 	f.created = append(f.created, p.FriendlyName)
 	return &voiceml.SIPIpAccessControlList{Sid: "ALnew", FriendlyName: strp(p.FriendlyName)}, nil
 }
-func (f *fakeSIPACLs) ListIpAddresses(context.Context, string, voiceml.ListPageParams) (*voiceml.SIPIpAddressList, error) {
+func (f *fakeSIPACLs) ListIpAddresses(context.Context, string, voiceml.ListSIPParams) (*voiceml.SIPIpAddressList, error) {
 	if f.listIPErr != nil {
 		return nil, f.listIPErr
 	}
@@ -165,7 +165,7 @@ type fakeSIPDomains struct {
 	listErr, createErr, listCredMapErr, createCredMapErr, listACLMapErr, createACLMapErr error
 }
 
-func (f *fakeSIPDomains) List(context.Context, voiceml.ListPageParams) (*voiceml.SIPDomainList, error) {
+func (f *fakeSIPDomains) List(context.Context, voiceml.ListSIPParams) (*voiceml.SIPDomainList, error) {
 	if f.listErr != nil {
 		return nil, f.listErr
 	}

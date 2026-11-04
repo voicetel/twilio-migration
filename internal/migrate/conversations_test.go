@@ -435,7 +435,7 @@ func TestMigrateConversations_SkipsExisting(t *testing.T) {
 		existingConfigAddrs:   []voiceml.ConversationsV1ConfigAddress{{Type: strp("sms"), Address: strp("+15559876543")}},
 	}
 	dst.existingParticipants = map[string][]voiceml.ConversationsV1ConversationParticipant{
-		"CHexist": {{Identity: strp("alice")}, {MessagingBinding: map[string]string{"address": "+15551234567"}}},
+		"CHexist": {{Identity: strp("alice")}, {MessagingBinding: map[string]any{"address": "+15551234567"}}},
 	}
 	dst.existingMessages = map[string][]voiceml.ConversationsV1ConversationMessage{"CHexist": {{Sid: strp("MSexist")}}}
 	dst.existingWebhooks = map[string][]voiceml.ConversationsV1ConversationScopedWebhook{"CHexist": {{Target: strp("webhook")}}}
