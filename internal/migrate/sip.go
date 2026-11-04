@@ -20,7 +20,7 @@ type sipSource interface {
 }
 
 type sipDomainsDest interface {
-	List(ctx context.Context, params voiceml.ListPageParams) (*voiceml.SIPDomainList, error)
+	List(ctx context.Context, params voiceml.ListSIPParams) (*voiceml.SIPDomainList, error)
 	Create(ctx context.Context, params voiceml.CreateSIPDomainParams) (*voiceml.SIPDomain, error)
 	ListCredentialListMappings(ctx context.Context, domainSid string, params voiceml.ListPageParams) (*voiceml.SIPCredentialListMappingList, error)
 	CreateCredentialListMapping(ctx context.Context, domainSid string, params voiceml.CreateSIPCredentialListMappingParams) (*voiceml.SIPDomainMapping, error)
@@ -29,16 +29,16 @@ type sipDomainsDest interface {
 }
 
 type sipCredListsDest interface {
-	List(ctx context.Context, params voiceml.ListPageParams) (*voiceml.SIPCredentialListList, error)
+	List(ctx context.Context, params voiceml.ListSIPParams) (*voiceml.SIPCredentialListList, error)
 	Create(ctx context.Context, params voiceml.CreateSIPCredentialListParams) (*voiceml.SIPCredentialList, error)
 	ListCredentials(ctx context.Context, credentialListSid string, params voiceml.ListPageParams) (*voiceml.SIPCredentialPage, error)
 	CreateCredential(ctx context.Context, credentialListSid string, params voiceml.CreateSIPCredentialParams) (*voiceml.SIPCredential, error)
 }
 
 type sipACLsDest interface {
-	List(ctx context.Context, params voiceml.ListPageParams) (*voiceml.SIPIpAccessControlListList, error)
+	List(ctx context.Context, params voiceml.ListSIPParams) (*voiceml.SIPIpAccessControlListList, error)
 	Create(ctx context.Context, params voiceml.CreateSIPIpAccessControlListParams) (*voiceml.SIPIpAccessControlList, error)
-	ListIpAddresses(ctx context.Context, aclSid string, params voiceml.ListPageParams) (*voiceml.SIPIpAddressList, error)
+	ListIpAddresses(ctx context.Context, aclSid string, params voiceml.ListSIPParams) (*voiceml.SIPIpAddressList, error)
 	CreateIpAddress(ctx context.Context, aclSid string, params voiceml.CreateSIPIpAddressParams) (*voiceml.SIPIpAddress, error)
 }
 
@@ -115,7 +115,7 @@ func (r *sipRun) migrateCredentialLists() error {
 	if err != nil {
 		return fmt.Errorf("list Twilio SIP credential lists: %w", err)
 	}
-	existing, err := r.credLists.List(r.ctx, voiceml.ListPageParams{})
+	existing, err := r.credLists.List(r.ctx, voiceml.ListSIPParams{})
 	if err != nil {
 		return fmt.Errorf("list VoiceML SIP credential lists: %w", err)
 	}
@@ -211,7 +211,7 @@ func (r *sipRun) migrateAccessControlLists() error {
 	if err != nil {
 		return fmt.Errorf("list Twilio SIP IP ACLs: %w", err)
 	}
-	existing, err := r.acls.List(r.ctx, voiceml.ListPageParams{})
+	existing, err := r.acls.List(r.ctx, voiceml.ListSIPParams{})
 	if err != nil {
 		return fmt.Errorf("list VoiceML SIP IP ACLs: %w", err)
 	}
@@ -258,7 +258,7 @@ func (r *sipRun) migrateIPAddresses(twilioACLSid, aclLabel, voicemlACLSid string
 	if err != nil {
 		return fmt.Errorf("list Twilio SIP IP addresses for %s: %w", aclLabel, err)
 	}
-	existing, err := r.acls.ListIpAddresses(r.ctx, voicemlACLSid, voiceml.ListPageParams{})
+	existing, err := r.acls.ListIpAddresses(r.ctx, voicemlACLSid, voiceml.ListSIPParams{})
 	if err != nil {
 		return fmt.Errorf("list VoiceML SIP IP addresses: %w", err)
 	}
@@ -304,7 +304,7 @@ func (r *sipRun) migrateDomains() error {
 	if err != nil {
 		return fmt.Errorf("list Twilio SIP domains: %w", err)
 	}
-	existing, err := r.domains.List(r.ctx, voiceml.ListPageParams{})
+	existing, err := r.domains.List(r.ctx, voiceml.ListSIPParams{})
 	if err != nil {
 		return fmt.Errorf("list VoiceML SIP domains: %w", err)
 	}

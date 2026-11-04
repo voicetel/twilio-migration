@@ -390,8 +390,9 @@ func migrateConvParticipants(ctx context.Context, src conversationsSource, dst c
 	have := make(map[string]bool, len(existing.Participants))
 	for _, p := range existing.Participants {
 		key := deref(p.Identity)
-		if key == "" && p.MessagingBinding != nil {
-			key = p.MessagingBinding["address"]
+		if key == "" {
+			// A nil map reads as no address, as does a non-string value.
+			key, _ = p.MessagingBinding["address"].(string)
 		}
 		if key != "" {
 			have[key] = true

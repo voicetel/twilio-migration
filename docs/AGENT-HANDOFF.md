@@ -30,7 +30,7 @@ Twilio Bulk Export's domain and are not importable configuration.
 - Go: 1.26+
 - Version policy: the tool version (`internal/version.Version`) tracks the
   VoiceML OpenAPI/SDK version; a test fails the build if it drifts from the
-  linked `voiceml-go-sdk` `Version`. Currently **0.9.2**.
+  linked `voiceml-go-sdk` `Version`. Currently **0.9.5**.
 
 ## Architecture
 

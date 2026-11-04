@@ -170,7 +170,7 @@ suite has no network dependency.
 
 `twilio-migration` is versioned to **match the VoiceML OpenAPI version** — the
 same version the [`voiceml-go-sdk`](https://github.com/voicetel/voiceml-go-sdk)
-is generated from and tagged with (currently **0.9.2**). Because the migration
+is generated from and tagged with (currently **0.9.5**). Because the migration
 mappings target a specific VoiceML API surface, tying the tool's tag to that
 surface makes upgrades mechanical:
 
@@ -185,7 +185,7 @@ against a mismatched API surface. Check what a build targets with:
 
 ```sh
 twilio-migration --version
-# twilio-migration 0.9.2 (targets VoiceML OpenAPI 0.9.2; linked voiceml-go-sdk 0.9.2)
+# twilio-migration 0.9.5 (targets VoiceML OpenAPI 0.9.5; linked voiceml-go-sdk 0.9.5)
 ```
 
 ## License

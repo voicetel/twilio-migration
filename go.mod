@@ -7,7 +7,7 @@ toolchain go1.26.8
 require (
 	github.com/creack/pty v1.1.24
 	github.com/twilio/twilio-go v1.30.9
-	github.com/voicetel/voiceml-go-sdk v0.9.2
+	github.com/voicetel/voiceml-go-sdk v0.9.5
 	golang.org/x/term v0.47.0
 )
 

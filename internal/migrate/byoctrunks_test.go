@@ -78,7 +78,7 @@ type fakeByocDomainDest struct {
 	err      error
 }
 
-func (f *fakeByocDomainDest) List(context.Context, voiceml.ListPageParams) (*voiceml.SIPDomainList, error) {
+func (f *fakeByocDomainDest) List(context.Context, voiceml.ListSIPParams) (*voiceml.SIPDomainList, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
