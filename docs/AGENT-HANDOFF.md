@@ -55,7 +55,7 @@ lives in yet another twilio-go package.
 
 | Migrator name | File | Notes |
 |---|---|---|
-| `phone-numbers` | `phonenumbers.go` | idempotent by number |
+| `phone-numbers` | `phonenumbers.go` | idempotent by number; re-points application bindings by friendly name, so runs after `applications` |
 | `applications` | `applications.go` | idempotent by friendly name |
 | `sip-trunking` | `sip.go` | domains, cred lists (+ credentials), IP ACLs (+ IPs), domain↔list/ACL mappings; mappings re-pointed by friendly name |
 | `messaging` | `messaging.go` | Messaging Services (messaging/v1 sub-client) |

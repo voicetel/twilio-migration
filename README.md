@@ -71,9 +71,11 @@ Messages, Calls, Conferences, Participants — but they are activity *logs*, not
 importable configuration, so they are out of scope here.
 
 > **Note on caveats surfaced during migration.** Some Twilio fields have no
-> VoiceML equivalent on create (e.g. a phone number's SMS URL, friendly name and
-> status-callback are not part of VoiceML's create body today). Those are mapped
-> where possible and reported; see each migrator's doc comment.
+> VoiceML equivalent on create (e.g. a phone number's friendly name, which VoiceML
+> derives from the number). Those are mapped where possible and reported; see each
+> migrator's doc comment. A number bound to a TwiML application needs that
+> application on VoiceML first: `applications` runs before `phone-numbers`, and with
+> `--only phone-numbers` such a number is reported as failed and can be re-run.
 
 ## Install
 

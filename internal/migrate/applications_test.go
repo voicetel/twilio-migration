@@ -85,3 +85,59 @@ func TestApplicationsName(t *testing.T) {
 		t.Errorf("name=%q", Applications{}.Name())
 	}
 }
+
+func TestMigrateApplications_CarriesEveryMappedField(t *testing.T) {
+	src := fakeAppSource{apps: []twapi.ApiV2010Application{{
+		FriendlyName:                    strp("Full"),
+		VoiceFallbackUrl:                strp("https://a.example/voice-fb"),
+		VoiceFallbackMethod:             strp("GET"),
+		VoiceCallerIdLookup:             boolp(true),
+		MessageStatusCallback:           strp("https://a.example/dlr"),
+		SmsStatusCallback:               strp("https://a.example/sms-status"),
+		SmsUrl:                          strp("https://a.example/sms"),
+		SmsMethod:                       strp("GET"),
+		SmsFallbackUrl:                  strp("https://a.example/sms-fb"),
+		SmsFallbackMethod:               strp("POST"),
+		PublicApplicationConnectEnabled: boolp(true),
+	}, {
+		FriendlyName: strp("Empty"),
+		SmsUrl:       strp(""),
+	}}}
+	dst := &fakeAppDest{}
+
+	if _, err := migrateApplications(context.Background(), src, dst, Options{}); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	if len(dst.created) != 2 {
+		t.Fatalf("created=%+v", dst.created)
+	}
+
+	got := dst.created[0]
+	for name, pair := range map[string][2]string{
+		"VoiceFallbackURL":      {deref(got.VoiceFallbackURL), "https://a.example/voice-fb"},
+		"VoiceFallbackMethod":   {deref(got.VoiceFallbackMethod), "GET"},
+		"MessageStatusCallback": {deref(got.MessageStatusCallback), "https://a.example/dlr"},
+		"SmsStatusCallback":     {deref(got.SmsStatusCallback), "https://a.example/sms-status"},
+		"SmsURL":                {deref(got.SmsURL), "https://a.example/sms"},
+		"SmsMethod":             {deref(got.SmsMethod), "GET"},
+		"SmsFallbackURL":        {deref(got.SmsFallbackURL), "https://a.example/sms-fb"},
+		"SmsFallbackMethod":     {deref(got.SmsFallbackMethod), "POST"},
+	} {
+		if pair[0] != pair[1] {
+			t.Errorf("%s=%q want %q", name, pair[0], pair[1])
+		}
+	}
+
+	if got.VoiceCallerIDLookup == nil || !*got.VoiceCallerIDLookup {
+		t.Errorf("VoiceCallerIDLookup=%v", got.VoiceCallerIDLookup)
+	}
+
+	if got.PublicApplicationConnectEnabled == nil || !*got.PublicApplicationConnectEnabled {
+		t.Errorf("PublicApplicationConnectEnabled=%v", got.PublicApplicationConnectEnabled)
+	}
+
+	if dst.created[1].SmsURL != nil {
+		t.Errorf("an empty SmsUrl was sent: %q", deref(dst.created[1].SmsURL))
+	}
+}

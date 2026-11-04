@@ -74,8 +74,10 @@ type Migrator interface {
 // Default returns the built-in migrators in a sensible run order.
 func Default() []Migrator {
 	return []Migrator{
-		PhoneNumbers{},
+		// PhoneNumbers re-points at Applications' already-migrated SIDs; must
+		// run after it.
 		Applications{},
+		PhoneNumbers{},
 		SIP{},
 		Messaging{},
 		Queues{},
